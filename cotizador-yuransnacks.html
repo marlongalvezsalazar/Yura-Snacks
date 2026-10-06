@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cotizador YuranSnacks</title>
+<style>
+  :root {
+    --olive: #6b7a3a;
+    --olive-dark: #4f5b27;
+    --olive-soft: #e3e8cf;
+    --sand: #efe6d0;
+    --sand-dark: #d9ccab;
+    --white: #ffffff;
+    --text: #3a3f26;
+    --error: #a8432b;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--sand);
+    color: var(--text);
+    font-family: ui-rounded, "SF Pro Rounded", "Nunito", "Varela Round",
+                 "Quicksand", "Trebuchet MS", system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 440px;
+  }
+
+  header {
+    text-align: center;
+    padding: 8px 0 14px;
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    color: var(--olive-dark);
+    letter-spacing: 0.3px;
+  }
+
+  header p {
+    margin: 4px 0 0;
+    font-size: 0.9rem;
+    color: var(--olive);
+  }
+
+  .card {
+    background: var(--white);
+    border-radius: 22px;
+    padding: 18px;
+    box-shadow: 0 4px 14px rgba(79, 91, 39, 0.12);
+  }
+
+  label {
+    display: block;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--olive-dark);
+    margin: 0 0 6px;
+  }
+
+  .field { margin-bottom: 14px; }
+
+  select, input[type="number"] {
+    width: 100%;
+    font: inherit;
+    font-size: 1rem;
+    color: var(--text);
+    background: var(--sand);
+    border: 2px solid transparent;
+    border-radius: 14px;
+    padding: 12px 14px;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  select {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'><path d='M1 1l6 6 6-6' fill='none' stroke='%236b7a3a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 38px;
+  }
+
+  select:focus, input[type="number"]:focus {
+    border-color: var(--olive);
+    background-color: var(--white);
+  }
+
+  .qty {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .qty input { text-align: center; font-weight: 700; }
+
+  .qty button {
+    flex: 0 0 52px;
+    font: inherit;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--olive-dark);
+    background: var(--olive-soft);
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+  }
+
+  .qty button:active { background: var(--sand-dark); }
+
+  .error {
+    color: var(--error);
+    font-size: 0.85rem;
+    margin: 6px 2px 0;
+    min-height: 1.1em;
+  }
+
+  .btn {
+    width: 100%;
+    font: inherit;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 16px;
+    padding: 14px;
+    cursor: pointer;
+    transition: transform 0.08s ease, background 0.15s ease;
+  }
+
+  .btn:active { transform: scale(0.98); }
+
+  .btn-primary { background: var(--olive); color: var(--white); }
+  .btn-primary:active { background: var(--olive-dark); }
+
+  .btn-secondary {
+    background: var(--olive-soft);
+    color: var(--olive-dark);
+    margin-top: 10px;
+  }
+
+  .btn-secondary.done { background: var(--olive-dark); color: var(--white); }
+
+  .result {
+    margin-top: 16px;
+    background: var(--sand);
+    border-radius: 18px;
+    padding: 16px;
+    display: none;
+  }
+
+  .result.show { display: block; }
+
+  .result h2 {
+    margin: 0 0 10px;
+    font-size: 0.95rem;
+    color: var(--olive);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 5px 0;
+    font-size: 0.95rem;
+  }
+
+  .row span:last-child { font-weight: 700; white-space: nowrap; }
+
+  .total {
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 2px dashed var(--sand-dark);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    color: var(--olive-dark);
+  }
+
+  .total span:first-child { font-weight: 700; }
+  .total span:last-child { font-size: 1.7rem; font-weight: 800; }
+
+  footer {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--olive);
+    margin-top: 12px;
+  }
+</style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>Cotizador YuranSnacks</h1>
+      <p>Calcula el total de un pedido</p>
+    </header>
+
+    <section class="card">
+      <div class="field">
+        <label for="producto">Producto</label>
+        <select id="producto"></select>
+      </div>
+
+      <div class="field">
+        <label for="cantidad">Cantidad</label>
+        <div class="qty">
+          <button type="button" id="menos" aria-label="Disminuir cantidad">−</button>
+          <input type="number" id="cantidad" value="1" min="1" step="1" inputmode="numeric">
+          <button type="button" id="mas" aria-label="Aumentar cantidad">+</button>
+        </div>
+        <div class="error" id="error" role="alert"></div>
+      </div>
+
+      <div class="field">
+        <label for="canal">Canal de entrega</label>
+        <select id="canal"></select>
+      </div>
+
+      <button class="btn btn-primary" id="calcular" type="button">Calcular</button>
+
+      <div class="result" id="resultado" aria-live="polite">
+        <h2>Resumen del pedido</h2>
+        <div class="row"><span id="r-detalle"></span><span id="r-subtotal"></span></div>
+        <div class="row"><span id="r-canal"></span><span id="r-envio"></span></div>
+        <div class="total"><span>Total</span><span id="r-total"></span></div>
+        <button class="btn btn-secondary" id="copiar" type="button">Copiar resumen</button>
+      </div>
+    </section>
+
+    <footer>Precios en soles (S/)</footer>
+  </main>
+
+<script>
+  // ---- Datos fijos: edita aquí los precios o agrega productos ----
+  const PRODUCTOS = [
+    { id: "barra-kiwicha", nombre: "Barra Kiwicha y Cacao",     precio: 8  },
+    { id: "barra-quinua",  nombre: "Barra Quinua Original",     precio: 7  },
+    { id: "pack-kiwicha",  nombre: "Pack x5 Kiwicha y Cacao",   precio: 35 },
+    { id: "pack-quinua",   nombre: "Pack x5 Quinua Original",   precio: 30 }
+  ];
+
+  const CANALES = [
+    { id: "recojo",   nombre: "Recojo en punto de venta", costo: 0 },
+    { id: "delivery", nombre: "Delivery en Lima",         costo: 5 }
+  ];
+
+  // ---- Utilidades ----
+  const $ = (id) => document.getElementById(id);
+  const soles = (n) => "S/ " + n.toFixed(2);
+
+  const selProducto = $("producto");
+  const selCanal = $("canal");
+  const inCantidad = $("cantidad");
+  const errorBox = $("error");
+  const resultado = $("resultado");
+  const btnCopiar = $("copiar");
+
+  let textoResumen = "";
+
+  // Llenar selectores
+  PRODUCTOS.forEach((p) => {
+    const o = document.createElement("option");
+    o.value = p.id;
+    o.textContent = p.nombre + " (" + soles(p.precio) + ")";
+    selProducto.appendChild(o);
+  });
+
+  CANALES.forEach((c) => {
+    const o = document.createElement("option");
+    o.value = c.id;
+    o.textContent = c.nombre + (c.costo > 0 ? " (+ " + soles(c.costo) + ")" : "");
+    selCanal.appendChild(o);
+  });
+
+  // Cantidad válida: entero >= 1
+  function leerCantidad() {
+    const n = Number(inCantidad.value);
+    return Number.isInteger(n) && n >= 1 ? n : null;
+  }
+
+  function ocultarResultado() {
+    resultado.classList.remove("show");
+    btnCopiar.textContent = "Copiar resumen";
+    btnCopiar.classList.remove("done");
+    textoResumen = "";
+  }
+
+  function calcular() {
+    const cantidad = leerCantidad();
+    if (cantidad === null) {
+      errorBox.textContent = "Ingresa una cantidad entera de 1 o más.";
+      ocultarResultado();
+      inCantidad.focus();
+      return;
+    }
+    errorBox.textContent = "";
+
+    const prod = PRODUCTOS.find((p) => p.id === selProducto.value);
+    const canal = CANALES.find((c) => c.id === selCanal.value);
+
+    const subtotal = prod.precio * cantidad;
+    const total = subtotal + canal.costo;
+
+    $("r-detalle").textContent = cantidad + " × " + prod.nombre;
+    $("r-subtotal").textContent = soles(subtotal);
+    $("r-canal").textContent = canal.nombre;
+    $("r-envio").textContent = canal.costo > 0 ? "+ " + soles(canal.costo) : "Sin costo";
+    $("r-total").textContent = soles(total);
+
+    const fecha = new Date().toLocaleDateString("es-PE");
+    textoResumen = [
+      "*Cotización YuranSnacks*",
+      "Fecha: " + fecha,
+      "",
+      "Producto: " + cantidad + " × " + prod.nombre + " (" + soles(prod.precio) + " c/u)",
+      "Subtotal: " + soles(subtotal),
+      "Entrega: " + canal.nombre + (canal.costo > 0 ? " (+ " + soles(canal.costo) + ")" : " (sin costo)"),
+      "",
+      "*Total: " + soles(total) + "*"
+    ].join("\n");
+
+    btnCopiar.textContent = "Copiar resumen";
+    btnCopiar.classList.remove("done");
+    resultado.classList.add("show");
+  }
+
+  // Copiar con respaldo para cuando el navegador bloquea el portapapeles
+  function copiarTexto(texto) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(texto);
+    }
+    return new Promise((resolve, reject) => {
+      const ta = document.createElement("textarea");
+      ta.value = texto;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try {
+        document.execCommand("copy") ? resolve() : reject();
+      } catch (e) {
+        reject(e);
+      } finally {
+        document.body.removeChild(ta);
+      }
+    });
+  }
+
+  btnCopiar.addEventListener("click", () => {
+    if (!textoResumen) return;
+    copiarTexto(textoResumen)
+      .then(() => {
+        btnCopiar.textContent = "¡Copiado!";
+        btnCopiar.classList.add("done");
+        setTimeout(() => {
+          btnCopiar.textContent = "Copiar resumen";
+          btnCopiar.classList.remove("done");
+        }, 2000);
+      })
+      .catch(() => {
+        btnCopiar.textContent = "No se pudo copiar";
+      });
+  });
+
+  // Botones − y +
+  $("menos").addEventListener("click", () => {
+    const n = leerCantidad() || 1;
+    inCantidad.value = Math.max(1, n - 1);
+    ocultarResultado();
+  });
+  $("mas").addEventListener("click", () => {
+    const n = leerCantidad() || 0;
+    inCantidad.value = n + 1;
+    ocultarResultado();
+  });
+
+  // Si cambian los datos, el resultado anterior ya no vale
+  [selProducto, selCanal, inCantidad].forEach((el) =>
+    el.addEventListener("input", () => {
+      errorBox.textContent = "";
+      ocultarResultado();
+    })
+  );
+
+  $("calcular").addEventListener("click", calcular);
+</script>
+</body>
+</html>
